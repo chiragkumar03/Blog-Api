@@ -1,0 +1,65 @@
+const mongo_url = "mongodb+srv://chirag2193:XSMVlYcbzUC5rdKj@cluster0.pdxlo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+//First change 
+const mongoose = require("mongoose")
+const express = require("express")
+const blog = require("./Blog_Model")
+const app = express()
+
+//Second change
+app.use(express.json())
+app.use(express.urlencoded({extended : true}))
+const port = 4000
+
+//Third change
+mongoose.connect(mongo_url)
+.then(()=>console.log("Connected to mongoDB"))
+.catch((error)=>console.log("Failed to connect to mongoDB : " , error))
+
+app.get("/" , (req , res)=>{
+    res.send("Server is working.");
+    
+})
+
+app.post("/createBlog" , async(req , res)=>{
+    const {title , author , content} = req.body;
+   
+    if(!title || !author || !content){
+        //res.send("Please fill the required fields.");
+        return res.status(400).send("Please fill required fields.");
+
+    }
+    //Fourth change
+    try {
+        const newPost = new blog({
+            title , author , content 
+        })
+        await newPost.save();
+        //res.send("Post created successfully.")
+        res.status(201).send("Post created succesfully.");
+        
+        console.log(newPost)
+        
+    } 
+    catch (error) {
+        res.status(500).send("Error in creating the post.")
+        
+    }
+})
+
+app.get("/getAllBlogs" , async (req , res)=>{
+    try {
+        const blogs =  await blog.find()
+        const result = res.json(blogs);
+        console.log(result)
+        
+    } catch (error) {
+        res.status(500).send("Failed to fetch the blogs.");
+        
+    }
+    
+})
+
+app.listen(port , ()=>{
+    console.log(`Server is running on port number ${port}`);
+    //console.log("Connected to mongoDB")
+})
